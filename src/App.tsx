@@ -4,14 +4,13 @@ import React, { useState } from 'react';
 interface IconProps { size?: number; className?: string; }
 interface MoodOption { id: string; label: string; emoji: string; }
 interface ModulationType { id: string; label: string; desc: string; }
-interface FormData { inputChords: string; modulation: 'stay' | 'modulate'; modulationDistance: string; mood: string; style: string; }
+interface FormData { inputChords: string; modulation: string; modulationDistance: string; mood: string; style: string; }
 interface ResultItem { id: number; chords: string[]; explanation: string; text: string; }
 
 // --- ÍCONOS NATIVOS ---
 const Compass = ({ size = 24, className = "" }: IconProps) => ( <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> );
 const ArrowRight = ({ size = 24, className = "" }: IconProps) => ( <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> );
 const ArrowLeft = ({ size = 24, className = "" }: IconProps) => ( <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> );
-const Sparkles = ({ size = 24, className = "" }: IconProps) => ( <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> );
 const RefreshCw = ({ size = 24, className = "" }: IconProps) => ( <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> );
 const Copy = ({ size = 24, className = "" }: IconProps) => ( <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> );
 const Check = ({ size = 24, className = "" }: IconProps) => ( <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg> );
@@ -62,7 +61,7 @@ export default function App() {
   const [formData, setFormData] = useState<FormData>({ inputChords: '', modulation: 'stay', modulationDistance: 'vecinas', mood: '', style: '' });
   const [results, setResults] = useState<ResultItem[]>([]);
 
-  const updateForm = (key: keyof FormData, value: string) => { setFormData(prev => ({ ...prev, [key]: value as any })); };
+  const updateForm = (key: keyof FormData, value: string) => { setFormData(prev => ({ ...prev, [key]: value })); };
   const nextStep = () => setStep(prev => Math.min(prev + 1, 5));
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
