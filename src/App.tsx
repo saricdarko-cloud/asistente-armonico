@@ -1,36 +1,69 @@
 import React, { useState, useEffect } from 'react';
 
+// --- INTERFACES TYPESCRIPT ---
+interface IconProps {
+  size?: number;
+  className?: string;
+}
+
+interface MoodOption { 
+  id: string; 
+  label: string; 
+  emoji: string; 
+}
+
+interface ModulationType { 
+  id: string; 
+  label: string; 
+  desc: string; 
+}
+
+interface FormData { 
+  inputChords: string; 
+  modulation: 'stay' | 'modulate'; 
+  modulationDistance: string; 
+  mood: string; 
+  style: string; 
+}
+
+interface ResultItem { 
+  id: number; 
+  chords: string[]; 
+  explanation: string; 
+  text: string; 
+}
+
 // --- ÍCONOS NATIVOS ---
-const Compass = ({ size = 24, className = "" }) => (
+const Compass = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
 );
-const ArrowRight = ({ size = 24, className = "" }) => (
+const ArrowRight = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
 );
-const ArrowLeft = ({ size = 24, className = "" }) => (
+const ArrowLeft = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
 );
-const Sparkles = ({ size = 24, className = "" }) => (
+const Sparkles = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
 );
-const RefreshCw = ({ size = 24, className = "" }) => (
+const RefreshCw = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
 );
-const Copy = ({ size = 24, className = "" }) => (
+const Copy = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
 );
-const Check = ({ size = 24, className = "" }) => (
+const Check = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>
 );
-const Lightbulb = ({ size = 24, className = "" }) => (
+const Lightbulb = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
 );
-const BookOpen = ({ size = 24, className = "" }) => (
+const BookOpen = ({ size = 24, className = "" }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
 );
 
 // --- CONFIGURACIÓN ---
-const MOOD_OPTIONS = [
+const MOOD_OPTIONS: MoodOption[] = [
   { id: 'alegre', label: 'Alegre / Brillante', emoji: '☀️' },
   { id: 'triste', label: 'Triste / Melancólico', emoji: '🌧️' },
   { id: 'sombrio', label: 'Sombrío / Oscuro', emoji: '🌑' },
@@ -43,14 +76,14 @@ const MOOD_OPTIONS = [
   { id: 'intimo', label: 'Íntimo / Cálido', emoji: '☕' }
 ];
 
-const STYLE_OPTIONS = [
+const STYLE_OPTIONS: string[] = [
   'Jazz', 'Pop', 'Bossa Nova', 'Neo-Soul', 'Clásica', 
   'R&B', 'Rock Alternativo', 'Lo-Fi Hip Hop', 'Cinemático', 'Funk',
   'Gospel', 'Bolero', 'Salsa', 'EDM / Electrónica', 'Metal Progresivo',
   'Synthwave', 'Flamenco', 'Fusión'
 ];
 
-const MODULATION_TYPES = [
+const MODULATION_TYPES: ModulationType[] = [
   { id: 'vecinas', label: 'Tonalidades Vecinas', desc: '1er grado (relativas, dominante, subdominante)' },
   { id: 'homonimas', label: 'Homónimas (Paralelas)', desc: 'Misma tónica, distinto modo (Ej: Mayor a Menor)' },
   { id: 'mediantes', label: 'Mediantes Cromáticas', desc: 'Movimiento por 3ras (Ej: Do a Mi o Lab)' },
@@ -59,28 +92,28 @@ const MODULATION_TYPES = [
   { id: 'sorpresa', label: 'Sorpresa', desc: 'Elección libre del asistente' }
 ];
 
-const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const NOTES: string[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-const getNoteIndex = (noteStr) => {
+const getNoteIndex = (noteStr: string): number => {
   const match = noteStr.match(/^[A-G][#b]?/i);
   if (!match) return 0;
   let note = match[0].toUpperCase();
-  const flats = {'DB':'C#','EB':'D#','GB':'F#','AB':'G#','BB':'A#'};
+  const flats: Record<string, string> = {'DB':'C#','EB':'D#','GB':'F#','AB':'G#','BB':'A#'};
   note = flats[note] || note;
   return NOTES.indexOf(note);
 };
 
-const transpose = (rootIndex, interval) => {
+const transpose = (rootIndex: number, interval: number): string => {
   return NOTES[(rootIndex + interval + 120) % 12];
 };
 
 export default function App() {
-  const [isTailwindLoaded, setIsTailwindLoaded] = useState(false);
-  const [step, setStep] = useState(1);
-  const [copiedId, setCopiedId] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isTailwindLoaded, setIsTailwindLoaded] = useState<boolean>(false);
+  const [step, setStep] = useState<number>(1);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     inputChords: '',
     modulation: 'stay', 
     modulationDistance: 'vecinas', 
@@ -88,7 +121,7 @@ export default function App() {
     style: ''
   });
 
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<ResultItem[]>([]);
 
   // --- CARGA LIMPIA DE TAILWIND ---
   useEffect(() => {
@@ -113,8 +146,8 @@ export default function App() {
     );
   }
 
-  const updateForm = (key, value) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+  const updateForm = (key: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value as any }));
   };
 
   const nextStep = () => setStep(prev => Math.min(prev + 1, 5));
@@ -129,12 +162,12 @@ export default function App() {
       const rootIndex = getNoteIndex(input);
       const isInputMinor = input.toLowerCase().includes('m') && !input.toLowerCase().includes('maj');
       
-      const newResults = [];
+      const newResults: ResultItem[] = [];
       const stylesWithExtensions = ['Jazz', 'Neo-Soul', 'Bossa Nova', 'R&B', 'Fusión'];
       const useExtensions = stylesWithExtensions.includes(formData.style);
 
       for (let i = 0; i < 3; i++) {
-        let chords = [input];
+        let chords: string[] = [input];
         let explanation = "";
         let targetIndex = rootIndex;
         let targetQuality = isInputMinor ? 'm' : '';
@@ -175,7 +208,7 @@ export default function App() {
           explanation += `Manteniendo el anclaje tonal en la región de ${transpose(rootIndex, 0)}, `;
         }
 
-        let route = [];
+        let route: string[] = [];
         let subQuality = useExtensions ? 'maj9' : 'maj7';
         let domQuality = useExtensions ? '13' : '7';
         let minQuality = useExtensions ? 'm9' : 'm7';
@@ -231,7 +264,7 @@ export default function App() {
     }, 1200);
   };
 
-  const copyToClipboard = (text, id) => {
+  const copyToClipboard = (text: string, id: number) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
