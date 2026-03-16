@@ -29,14 +29,8 @@ const BookOpen = ({ size = 24, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
 );
 
-// --- INTERFACES ---
-interface MoodOption { id: string; label: string; emoji: string; }
-interface ModulationType { id: string; label: string; desc: string; }
-interface FormData { inputChords: string; modulation: 'stay' | 'modulate'; modulationDistance: string; mood: string; style: string; }
-interface ResultItem { id: number; chords: string[]; explanation: string; text: string; }
-
 // --- CONFIGURACIÓN ---
-const MOOD_OPTIONS: MoodOption[] = [
+const MOOD_OPTIONS = [
   { id: 'alegre', label: 'Alegre / Brillante', emoji: '☀️' },
   { id: 'triste', label: 'Triste / Melancólico', emoji: '🌧️' },
   { id: 'sombrio', label: 'Sombrío / Oscuro', emoji: '🌑' },
@@ -49,14 +43,14 @@ const MOOD_OPTIONS: MoodOption[] = [
   { id: 'intimo', label: 'Íntimo / Cálido', emoji: '☕' }
 ];
 
-const STYLE_OPTIONS: string[] = [
+const STYLE_OPTIONS = [
   'Jazz', 'Pop', 'Bossa Nova', 'Neo-Soul', 'Clásica', 
   'R&B', 'Rock Alternativo', 'Lo-Fi Hip Hop', 'Cinemático', 'Funk',
   'Gospel', 'Bolero', 'Salsa', 'EDM / Electrónica', 'Metal Progresivo',
   'Synthwave', 'Flamenco', 'Fusión'
 ];
 
-const MODULATION_TYPES: ModulationType[] = [
+const MODULATION_TYPES = [
   { id: 'vecinas', label: 'Tonalidades Vecinas', desc: '1er grado (relativas, dominante, subdominante)' },
   { id: 'homonimas', label: 'Homónimas (Paralelas)', desc: 'Misma tónica, distinto modo (Ej: Mayor a Menor)' },
   { id: 'mediantes', label: 'Mediantes Cromáticas', desc: 'Movimiento por 3ras (Ej: Do a Mi o Lab)' },
@@ -65,28 +59,28 @@ const MODULATION_TYPES: ModulationType[] = [
   { id: 'sorpresa', label: 'Sorpresa', desc: 'Elección libre del asistente' }
 ];
 
-const NOTES: string[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-const getNoteIndex = (noteStr: string): number => {
+const getNoteIndex = (noteStr) => {
   const match = noteStr.match(/^[A-G][#b]?/i);
   if (!match) return 0;
   let note = match[0].toUpperCase();
-  const flats: Record<string, string> = {'DB':'C#','EB':'D#','GB':'F#','AB':'G#','BB':'A#'};
+  const flats = {'DB':'C#','EB':'D#','GB':'F#','AB':'G#','BB':'A#'};
   note = flats[note] || note;
   return NOTES.indexOf(note);
 };
 
-const transpose = (rootIndex: number, interval: number): string => {
+const transpose = (rootIndex, interval) => {
   return NOTES[(rootIndex + interval + 120) % 12];
 };
 
 export default function App() {
   const [isTailwindLoaded, setIsTailwindLoaded] = useState(false);
-  const [step, setStep] = useState<number>(1);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [step, setStep] = useState(1);
+  const [copiedId, setCopiedId] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     inputChords: '',
     modulation: 'stay', 
     modulationDistance: 'vecinas', 
@@ -94,7 +88,7 @@ export default function App() {
     style: ''
   });
 
-  const [results, setResults] = useState<ResultItem[]>([]);
+  const [results, setResults] = useState([]);
 
   // --- CARGA LIMPIA DE TAILWIND ---
   useEffect(() => {
@@ -119,8 +113,8 @@ export default function App() {
     );
   }
 
-  const updateForm = (key: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [key]: value as any }));
+  const updateForm = (key, value) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
   };
 
   const nextStep = () => setStep(prev => Math.min(prev + 1, 5));
@@ -135,12 +129,12 @@ export default function App() {
       const rootIndex = getNoteIndex(input);
       const isInputMinor = input.toLowerCase().includes('m') && !input.toLowerCase().includes('maj');
       
-      const newResults: ResultItem[] = [];
+      const newResults = [];
       const stylesWithExtensions = ['Jazz', 'Neo-Soul', 'Bossa Nova', 'R&B', 'Fusión'];
       const useExtensions = stylesWithExtensions.includes(formData.style);
 
       for (let i = 0; i < 3; i++) {
-        let chords: string[] = [input];
+        let chords = [input];
         let explanation = "";
         let targetIndex = rootIndex;
         let targetQuality = isInputMinor ? 'm' : '';
@@ -181,7 +175,7 @@ export default function App() {
           explanation += `Manteniendo el anclaje tonal en la región de ${transpose(rootIndex, 0)}, `;
         }
 
-        let route: string[] = [];
+        let route = [];
         let subQuality = useExtensions ? 'maj9' : 'maj7';
         let domQuality = useExtensions ? '13' : '7';
         let minQuality = useExtensions ? 'm9' : 'm7';
@@ -237,7 +231,7 @@ export default function App() {
     }, 1200);
   };
 
-  const copyToClipboard = (text: string, id: number) => {
+  const copyToClipboard = (text, id) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
