@@ -1,47 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// --- LIMPIEZA ABSOLUTA Y CARGA DE TAILWIND ---
-// Este bloque se ejecuta antes de que React empiece a dibujar la pantalla.
-if (typeof window !== 'undefined') {
-  // 1. DESTRUCTOR DE ESTILOS POR DEFECTO (Elimina el fondo blanco de Vite/StackBlitz)
-  const annihilateDefaultStyles = () => {
-    document.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
-      if (el.id !== 'tailwind-cdn' && el.id !== 'app-base-styles') {
-        el.remove();
-      }
-    });
-  };
-  
-  // Ejecutamos la limpieza inmediatamente
-  annihilateDefaultStyles();
-  
-  // 2. INYECCIÓN DEL FONDO OSCURO DE EMERGENCIA
-  if (!document.getElementById('app-base-styles')) {
-    const style = document.createElement('style');
-    style.id = 'app-base-styles';
-    style.innerHTML = `
-      html, body { 
-        background-color: #020617 !important; 
-        margin: 0 !important; 
-        padding: 0 !important; 
-        color: #f8fafc;
-        overflow-x: hidden;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-      }
-      * { box-sizing: border-box; }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // 3. INYECCIÓN DE TAILWIND
-  if (!document.getElementById('tailwind-cdn')) {
-    const script = document.createElement('script');
-    script.id = 'tailwind-cdn';
-    script.src = 'https://cdn.tailwindcss.com';
-    document.head.appendChild(script);
-  }
-}
-
 // --- ÍCONOS NATIVOS ---
 const Compass = ({ size = 24, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
@@ -123,7 +81,7 @@ const transpose = (rootIndex: number, interval: number): string => {
 };
 
 export default function App() {
-  const [isStyleReady, setIsStyleReady] = useState(false);
+  const [isTailwindLoaded, setIsTailwindLoaded] = useState(false);
   const [step, setStep] = useState<number>(1);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -138,56 +96,26 @@ export default function App() {
 
   const [results, setResults] = useState<ResultItem[]>([]);
 
-  // --- PRUEBA FÍSICA INFALIBLE DE TAILWIND ---
+  // --- CARGA LIMPIA DE TAILWIND ---
   useEffect(() => {
-    // Volvemos a limpiar por si Vite inyectó sus estilos blancos tarde
-    document.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
-      if (el.id !== 'tailwind-cdn' && el.id !== 'app-base-styles') el.remove();
-    });
-
-    // Creamos un elemento invisible con clases específicas de Tailwind
-    const testElement = document.createElement('div');
-    // Le pedimos a Tailwind que le ponga 384px de ancho (w-96)
-    testElement.className = 'w-96 absolute invisible pointer-events-none';
-    document.body.appendChild(testElement);
-
-    const checkTailwindStatus = setInterval(() => {
-      const computedStyle = window.getComputedStyle(testElement);
-      // Solo si el elemento mide exactamente 384px, sabemos que Tailwind está 100% activo
-      if (computedStyle.width === '384px') {
-        clearInterval(checkTailwindStatus);
-        testElement.remove();
-        // Damos 100ms extra para que el navegador procese los colores
-        setTimeout(() => setIsStyleReady(true), 100);
-      }
-    }, 20);
-
-    return () => {
-      clearInterval(checkTailwindStatus);
-      if (document.body.contains(testElement)) testElement.remove();
-    };
+    if (!document.getElementById('tailwind-cdn-script')) {
+      const script = document.createElement('script');
+      script.id = 'tailwind-cdn-script';
+      script.src = 'https://cdn.tailwindcss.com';
+      script.onload = () => setIsTailwindLoaded(true);
+      document.head.appendChild(script);
+    } else {
+      setIsTailwindLoaded(true);
+    }
+    
+    // Configuración base para asegurar el fondo oscuro
+    document.body.style.backgroundColor = '#020617';
+    document.body.style.margin = '0';
   }, []);
 
-  // --- PANTALLA DE BLOQUEO DURA ---
-  if (!isStyleReady) {
+  if (!isTailwindLoaded) {
     return (
-      <div style={{
-        position: 'fixed', inset: 0, 
-        backgroundColor: '#020617', color: '#f8fafc',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        zIndex: 9999999
-      }}>
-        <div style={{
-          width: '50px', height: '50px', borderRadius: '50%',
-          border: '4px solid #1e293b', borderTopColor: '#6366f1',
-          animation: 'spin 1s linear infinite', marginBottom: '20px'
-        }}></div>
-        <div style={{ fontSize: '14px', fontWeight: 'bold', letterSpacing: '2px', color: '#94a3b8' }}>
-          SINCRONIZANDO ENTORNO...
-        </div>
-        <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
-      </div>
+      <div style={{ backgroundColor: '#020617', width: '100vw', height: '100vh' }}></div>
     );
   }
 
@@ -325,14 +253,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col" style={{ minHeight: '100vh', backgroundColor: '#020617', color: '#e2e8f0' }}>
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col">
       <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Compass size={20} className="text-white" />
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">Asistente<span className="text-indigo-400">Armónico</span></h1>
-          <span className="ml-auto text-xs font-mono bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">Modo Local TS</span>
         </div>
       </header>
 
