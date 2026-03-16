@@ -146,4 +146,90 @@ export default function App() {
             {step === 3 && (
               <section className="space-y-6">
                 <h2 className="text-2xl font-bold text-white text-center">3. Motor Emocional (Arcos Narrativos)</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {['oscuro', 'nostalgico', 'heroico', 'etereo', 'tenso'].map(m => (
+                    <button key={m} onClick={() => {setFormData({...formData, mood: m}); setStep(4)}} className="p-8 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col items-center gap-4 hover:border-indigo-500 transition-all group">
+                      <span className="text-sm font-black uppercase tracking-widest text-slate-400 group-hover:text-white">{m}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {step === 4 && (
+              <section className="space-y-6">
+                <h2 className="text-2xl font-bold text-white">4. Motor de Estilo (Voicing Engine)</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {Object.keys(STYLE_DB).map(s => (
+                    <button key={s} onClick={() => setFormData({...formData, style: s})} className={`p-4 rounded-xl border text-[10px] font-bold uppercase tracking-wider transition-all ${formData.style === s ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <div className="pt-8 border-t border-slate-800 flex justify-between">
+                  <button onClick={() => setStep(3)} className="text-slate-500 font-bold py-2 px-4">ATRÁS</button>
+                  <button onClick={generateProcess} className="px-10 py-5 bg-indigo-600 rounded-2xl font-black text-white shadow-xl shadow-indigo-600/20">GENERAR ARQUITECTURA</button>
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="space-y-8 animate-in fade-in zoom-in-95 duration-700">
+            <div className="text-center space-y-2">
+              <h2 className="text-4xl font-black text-white tracking-tighter">DESARROLLO ARMONICO</h2>
+              <p className="text-indigo-400 text-sm font-bold uppercase tracking-widest">Estilo {formData.style} | Gramática Activa</p>
+            </div>
+
+            {isGenerating ? (
+              <div className="py-24 flex flex-col items-center gap-6">
+                <RefreshCw size={48} className="animate-spin text-indigo-500" />
+                <p className="text-slate-500 font-mono text-xs uppercase tracking-[0.3em]">Procesando capas teóricas...</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {results.map(res => (
+                  <div key={res.id} className="bg-slate-900/40 border border-slate-800 p-10 rounded-[2.5rem] space-y-8 hover:bg-slate-900/60 transition-all">
+                    <div className="flex flex-wrap gap-6 items-center">
+                      {res.chords.map((c, i) => (
+                        <React.Fragment key={i}>
+                          <div className="relative group">
+                            <span className="text-4xl font-mono font-black text-white tracking-tighter">{c}</span>
+                            <div className="absolute -bottom-1 left-0 w-0 h-1 bg-indigo-500 group-hover:w-full transition-all"></div>
+                          </div>
+                          {i < res.chords.length - 1 && <ArrowRight size={24} className="text-slate-800" />}
+                        </React.Fragment>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-black/40 p-5 rounded-2xl border border-white/5 space-y-1">
+                        <label className="text-[10px] font-black text-indigo-500 uppercase">Tensión Narrativa</label>
+                        <p className="text-xs text-slate-300 font-medium italic">{res.tensionCurve}</p>
+                      </div>
+                      <div className="bg-black/40 p-5 rounded-2xl border border-white/5 space-y-1">
+                        <label className="text-[10px] font-black text-purple-500 uppercase">Análisis de Función</label>
+                        <p className="text-xs text-slate-400 font-mono">{res.analysis}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-px flex-1 bg-slate-800"></div>
+                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Lógica Aplicada</span>
+                        <div className="h-px flex-1 bg-slate-800"></div>
+                      </div>
+                      <p className="text-sm text-slate-400 leading-relaxed"><b className="text-indigo-300">{res.theoryApplied}:</b> {res.explanation}</p>
+                    </div>
+                  </div>
+                ))}
+                <button onClick={() => setStep(1)} className="w-full py-6 bg-slate-800 rounded-3xl font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-slate-700 transition-all">INICIAR NUEVA ESTRUCTURA</button>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
