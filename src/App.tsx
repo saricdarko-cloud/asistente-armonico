@@ -1,5 +1,47 @@
 import React, { useState, useEffect } from 'react';
 
+// --- LIMPIEZA ABSOLUTA Y CARGA DE TAILWIND ---
+// Este bloque se ejecuta antes de que React empiece a dibujar la pantalla.
+if (typeof window !== 'undefined') {
+  // 1. DESTRUCTOR DE ESTILOS POR DEFECTO (Elimina el fondo blanco de Vite/StackBlitz)
+  const annihilateDefaultStyles = () => {
+    document.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
+      if (el.id !== 'tailwind-cdn' && el.id !== 'app-base-styles') {
+        el.remove();
+      }
+    });
+  };
+  
+  // Ejecutamos la limpieza inmediatamente
+  annihilateDefaultStyles();
+  
+  // 2. INYECCIÓN DEL FONDO OSCURO DE EMERGENCIA
+  if (!document.getElementById('app-base-styles')) {
+    const style = document.createElement('style');
+    style.id = 'app-base-styles';
+    style.innerHTML = `
+      html, body { 
+        background-color: #020617 !important; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        color: #f8fafc;
+        overflow-x: hidden;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+      }
+      * { box-sizing: border-box; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // 3. INYECCIÓN DE TAILWIND
+  if (!document.getElementById('tailwind-cdn')) {
+    const script = document.createElement('script');
+    script.id = 'tailwind-cdn';
+    script.src = 'https://cdn.tailwindcss.com';
+    document.head.appendChild(script);
+  }
+}
+
 // --- ÍCONOS NATIVOS ---
 const Compass = ({ size = 24, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
@@ -96,57 +138,55 @@ export default function App() {
 
   const [results, setResults] = useState<ResultItem[]>([]);
 
-  // --- CARGA Y VERIFICACIÓN ABSOLUTA DE TAILWIND ---
+  // --- PRUEBA FÍSICA INFALIBLE DE TAILWIND ---
   useEffect(() => {
-    let isMounted = true;
+    // Volvemos a limpiar por si Vite inyectó sus estilos blancos tarde
+    document.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
+      if (el.id !== 'tailwind-cdn' && el.id !== 'app-base-styles') el.remove();
+    });
 
-    const initTailwind = () => {
-      // Si el script de Tailwind aún no existe, lo inyectamos
-      if (!document.getElementById('tailwind-cdn')) {
-        const script = document.createElement('script');
-        script.id = 'tailwind-cdn';
-        script.src = 'https://cdn.tailwindcss.com';
-        document.head.appendChild(script);
+    // Creamos un elemento invisible con clases específicas de Tailwind
+    const testElement = document.createElement('div');
+    // Le pedimos a Tailwind que le ponga 384px de ancho (w-96)
+    testElement.className = 'w-96 absolute invisible pointer-events-none';
+    document.body.appendChild(testElement);
+
+    const checkTailwindStatus = setInterval(() => {
+      const computedStyle = window.getComputedStyle(testElement);
+      // Solo si el elemento mide exactamente 384px, sabemos que Tailwind está 100% activo
+      if (computedStyle.width === '384px') {
+        clearInterval(checkTailwindStatus);
+        testElement.remove();
+        // Damos 100ms extra para que el navegador procese los colores
+        setTimeout(() => setIsStyleReady(true), 100);
       }
+    }, 20);
 
-      // Comprobamos constantemente si Tailwind ya se inicializó en el navegador
-      const checkTailwind = setInterval(() => {
-        // @ts-ignore
-        if (window.tailwind) {
-          clearInterval(checkTailwind);
-          // Le damos 600ms extras a Tailwind para que procese todo el HTML interno de React
-          setTimeout(() => {
-            if (isMounted) setIsStyleReady(true);
-          }, 600);
-        }
-      }, 50);
+    return () => {
+      clearInterval(checkTailwindStatus);
+      if (document.body.contains(testElement)) testElement.remove();
     };
-
-    initTailwind();
-
-    return () => { isMounted = false; };
   }, []);
 
-  // --- ESCUDO CONTRA FOUC (FLASH OF UNSTYLED CONTENT) ---
-  // Estilos 100% en línea, imposibles de sobreescribir por los estilos por defecto blancos de Vite/StackBlitz
+  // --- PANTALLA DE BLOQUEO DURA ---
   if (!isStyleReady) {
     return (
       <div style={{
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        position: 'fixed', inset: 0, 
         backgroundColor: '#020617', color: '#f8fafc',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        zIndex: 999999
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        zIndex: 9999999
       }}>
         <div style={{
-          width: '45px', height: '45px', borderRadius: '50%',
+          width: '50px', height: '50px', borderRadius: '50%',
           border: '4px solid #1e293b', borderTopColor: '#6366f1',
-          animation: 'spin 1s linear infinite', marginBottom: '1.5rem'
+          animation: 'spin 1s linear infinite', marginBottom: '20px'
         }}></div>
-        <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.15em', color: '#64748b', margin: 0 }}>
-          CARGANDO MOTOR VISUAL...
-        </p>
-        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        <div style={{ fontSize: '14px', fontWeight: 'bold', letterSpacing: '2px', color: '#94a3b8' }}>
+          SINCRONIZANDO ENTORNO...
+        </div>
+        <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -285,8 +325,7 @@ export default function App() {
   };
 
   return (
-    // Agregamos estilos en línea de seguridad también al contenedor principal
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col" style={{ backgroundColor: '#020617', color: '#e2e8f0', minHeight: '100vh', fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col" style={{ minHeight: '100vh', backgroundColor: '#020617', color: '#e2e8f0' }}>
       <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
