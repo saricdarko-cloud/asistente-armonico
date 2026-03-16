@@ -39,7 +39,7 @@ const MODULATION_TYPES: ModulationType[] = [
   { id: 'sorpresa', label: 'Sorpresa', desc: 'Elección libre del asistente' }
 ];
 
-// --- MOTOR TEÓRICO: LAS 7 CAPAS ---
+// --- MOTOR TEÓRICO ---
 const NOTES: string[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const getNoteIndex = (noteStr: string): number => {
@@ -52,36 +52,22 @@ const getNoteIndex = (noteStr: string): number => {
 
 const transposeIndex = (root: number, interval: number) => (root + interval + 120) % 12;
 
-// Capas 5 y 6: Motor de Emoción y Estilo (Construcción del acorde final)
 const formatChord = (rootIndex: number, quality: string, mood: string, style: string): string => {
   const root = NOTES[rootIndex];
-  let q = quality; // base: 'maj', 'm', '7', 'm7b5'
+  let q = quality;
 
-  // Motor de Estilo
   if (style === 'Jazz' || style === 'Bossa Nova' || style === 'Fusión') {
-    if (q === 'maj') q = 'maj9';
-    if (q === 'm') q = 'm9';
-    if (q === '7') q = '13';
+    if (q === 'maj') q = 'maj9'; if (q === 'm') q = 'm9'; if (q === '7') q = '13';
   } else if (style === 'Cinemático' || style === 'Clásica') {
-    if (q === 'maj') q = 'maj7(no3)';
-    if (q === 'm') q = 'm(add9)';
-    if (q === '7') q = '11';
+    if (q === 'maj') q = 'maj7(no3)'; if (q === 'm') q = 'm(add9)'; if (q === '7') q = '11';
   } else if (style === 'Rock Alternativo' || style === 'Metal Progresivo') {
-    if (q === 'maj') q = 'sus2';
-    if (q === 'm') q = 'm7';
-    if (q === '7') q = '7sus4';
+    if (q === 'maj') q = 'sus2'; if (q === 'm') q = 'm7'; if (q === '7') q = '7sus4';
   } else if (style === 'Neo-Soul' || style === 'R&B' || style === 'Lo-Fi Hip Hop') {
-    if (q === 'maj') q = 'maj11';
-    if (q === 'm') q = 'm11';
-    if (q === '7') q = '7#9';
+    if (q === 'maj') q = 'maj11'; if (q === 'm') q = 'm11'; if (q === '7') q = '7#9';
   } else {
-    // Pop y otros (estándar)
-    if (q === 'maj') q = 'maj7';
-    if (q === 'm') q = 'm';
-    if (q === '7') q = '7';
+    if (q === 'maj') q = 'maj7'; if (q === 'm') q = 'm'; if (q === '7') q = '7';
   }
 
-  // Motor Emocional (Ajustes de tensión narrativa)
   if ((mood === 'oscuro' || mood === 'sombrio' || mood === 'tenso') && q.includes('7')) q = q.replace('7', '7b9').replace('13', '7b9');
   if ((mood === 'etereo' || mood === 'misterioso') && q.includes('7')) q = '11';
   if (mood === 'nostalgico' && q === 'm') q = 'm9';
@@ -100,79 +86,69 @@ export default function App() {
   const nextStep = () => setStep(prev => Math.min(prev + 1, 5));
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-  // Motor Principal: Ejecuta las 7 capas
   const generateNativeProgressions = () => {
     setIsGenerating(true); setStep(5);
     
     setTimeout(() => {
       const input = formData.inputChords.trim() || 'Cmaj7';
-      // Capa 1 y 2: Análisis Musical Profundo
       const rootIndex = getNoteIndex(input);
       const isMinor = input.toLowerCase().includes('m') && !input.toLowerCase().includes('maj');
       
       const newResults: ResultItem[] = [];
 
+      // Helpers internos para acortar la sintaxis y evitar errores
+      const getChord = (interval: number, quality: string) => formatChord(transposeIndex(rootIndex, interval), quality, formData.mood, formData.style);
+      const getTarget = (tIndex: number, tInterval: number, quality: string) => formatChord(transposeIndex(tIndex, tInterval), quality, formData.mood, formData.style);
+
       for (let i = 0; i < 3; i++) {
-        let route: string[] = [input];
+        let route: string[] = [];
         let explanation = "";
 
-        if (formData.modulation === 'modulate') {
-          // Capas 3 y 4: Motor de Modulación
-          let targetIndex = rootIndex;
-          let targetIsMinor = isMinor;
-          
-          if (formData.modulationDistance === 'vecinas') {
-             // Schoenberg (Regiones cercanas)
-             const isSubdom = Math.random() > 0.5;
-             targetIndex = transposeIndex(rootIndex, isSubdom ? 5 : 7);
-             explanation = `[Modulación de Schoenberg] Nos movemos a la región vecina de ${NOTES[targetIndex]}. Se genera una EXPANSIÓN hacia la ${isSubdom ? 'Subdominante' : 'Dominante'} usando un acorde puente, buscando establecer un nuevo centro tonal sin saltos bruscos. `;
-             route.push(formatChord(transposeIndex(targetIndex, 7), '7', formData.mood, formData.style));
-             
-          } else if (formData.modulationDistance === 'homonimas') {
-             targetIsMinor = !isMinor;
-             explanation = `[Intercambio Modal] Cambiamos el modo paralelo a ${NOTES[rootIndex]} ${targetIsMinor ? 'Menor' : 'Mayor'}. Esta es una MODULACIÓN de color que mantiene la misma nota base pero altera la percepción emocional (Resolución inesperada). `;
-             route.push(formatChord(transposeIndex(rootIndex, 5), targetIsMinor ? 'm' : 'maj', formData.mood, formData.style));
-
-          } else if (formData.modulationDistance === 'mediantes' || formData.modulationDistance === 'muy_lejanas') {
-             // Neo-Riemanniana (P, L, R)
-             const intervals = isMinor ? [3, 8] : [4, 9];
-             const leap = intervals[Math.floor(Math.random() * intervals.length)];
-             targetIndex = transposeIndex(rootIndex, leap);
-             targetIsMinor = !isMinor;
-             explanation = `[Teoría Neo-Riemanniana] Aplicamos un movimiento cromático hacia ${NOTES[targetIndex]}. Es una MODULACIÓN cinematográfica que ignora la gramática clásica, conectando acordes a través de la suavidad del voice leading (notas en común). `;
-             route.push(formatChord(transposeIndex(rootIndex, isMinor ? 7 : 4), isMinor ? 'm' : 'maj', formData.mood, formData.style));
-
+        if (formData.modulation === 'stay') {
+          if (i === 0) {
+            route = [ getChord(0, isMinor?'m':'maj'), getChord(isMinor?3:4, isMinor?'maj':'m'), getChord(isMinor?8:9, isMinor?'maj':'m'), getChord(isMinor?10:2, isMinor?'maj':'m'), getChord(7, '7'), getChord(0, isMinor?'m':'maj') ];
+            explanation = "Esta progresión respira dentro de un mismo ecosistema. Comienza alejándose lentamente del centro hacia acordes que oscurecen ligeramente el estado de ánimo, creando una sensación de desarrollo e introspección. Tras este paseo, la energía se recobra al pasar por una zona de inestabilidad (acorde de preparación) que empuja al oído ineludiblemente hacia el hogar, otorgando un ciclo completo de reposo, alejamiento y retorno satisfactorio.";
+          } else if (i === 1) {
+            route = [ getChord(0, isMinor?'m':'maj'), getChord(0, '7'), getChord(5, isMinor?'m':'maj'), getChord(5, isMinor?'maj':'m'), getChord(isMinor?8:10, 'maj'), getChord(0, isMinor?'m':'maj') ];
+            explanation = "Aquí jugamos con el claroscuro emocional. Iniciamos estables, pero rápidamente forzamos un movimiento transformando nuestro acorde inicial en un trampolín hacia un momento expansivo. Justo cuando el oído se acostumbra a ese nuevo color, alteramos el paisaje abruptamente tomando prestado un acorde de una dimensión paralela mucho más oscura. Esta fricción culmina en un retorno que se siente dramático y pesado.";
           } else {
-             // Lerdahl (Tonal Pitch Space) - Lejanas / Sorpresa
-             targetIndex = transposeIndex(rootIndex, Math.floor(Math.random() * 11) + 1);
-             targetIsMinor = Math.random() > 0.5;
-             explanation = `[Lerdahl - Tonal Pitch Space] Salto lejano en el espacio tonal hacia ${NOTES[targetIndex]}. Creamos una RESOLUCIÓN artificial usando un acorde suspendido para suavizar la distancia cognitiva entre ambas tonalidades. `;
-             route.push(formatChord(transposeIndex(targetIndex, 7), '7', formData.mood, 'Rock Alternativo')); // Forzamos un sus/11
+            route = [ getChord(0, isMinor?'m':'maj'), getChord(isMinor?2:1, 'dim7'), getChord(2, isMinor?'m7b5':'m'), getChord(7, '7'), getChord(isMinor?8:1, 'maj'), getChord(0, isMinor?'m':'maj') ];
+            explanation = "En esta opción, la gravedad musical se manipula paso a paso. En lugar de saltos amplios, nos deslizamos por notas intermedias que generan fricción acústica y una fuerte necesidad de resolución. Empleamos un 'acorde sorpresa' justo antes del final, engañando a las expectativas y retrasando la caída final para crear una sensación de levitación o suspensión antes del aterrizaje definitivo.";
           }
-
-          route.push(formatChord(targetIndex, targetIsMinor ? 'm' : 'maj', formData.mood, formData.style));
-
         } else {
-          // Si no modula: Capa 3 (Gramática armónica interna)
-          const approachType = i % 3;
-          if (approachType === 0) {
-            // Expansión Diatónica
-            route.push(formatChord(transposeIndex(rootIndex, 5), isMinor ? 'm' : 'maj', formData.mood, formData.style));
-            route.push(formatChord(transposeIndex(rootIndex, 7), '7', formData.mood, formData.style));
-            route.push(formatChord(rootIndex, isMinor ? 'm' : 'maj', formData.mood, formData.style));
-            explanation = `[Gramática Funcional] EXPANSIÓN diatónica pura. Nos alejamos hacia la región subdominante para acumular energía, pasando por el dominante para una RESOLUCIÓN clásica hacia la tónica.`;
-          } else if (approachType === 1) {
-            // Sustitución Tritonal
-            route.push(formatChord(transposeIndex(rootIndex, 2), isMinor ? 'm7b5' : 'm', formData.mood, formData.style));
-            route.push(formatChord(transposeIndex(rootIndex, 1), '7', formData.mood, formData.style));
-            route.push(formatChord(rootIndex, isMinor ? 'm' : 'maj', formData.mood, formData.style));
-            explanation = `[Tensión Narrativa] Aumentamos la fricción armónica usando una sustitución de tritono. Esta RESOLUCIÓN cromática descendente genera una sensación sofisticada típica del Jazz o Neo-Soul.`;
+          let tIndex = rootIndex;
+          let tMinor = isMinor;
+
+          if (formData.modulationDistance === 'vecinas') {
+            if (i === 0) { tIndex = transposeIndex(rootIndex, 5); tMinor = isMinor; } 
+            if (i === 1) { tIndex = transposeIndex(rootIndex, 7); tMinor = isMinor; } 
+            if (i === 2) { tIndex = transposeIndex(rootIndex, isMinor ? 3 : 9); tMinor = !isMinor; } 
+
+            route = [ getChord(0, isMinor?'m':'maj'), getChord(isMinor?7:9, isMinor?'m':'m'), getTarget(tIndex, 2, tMinor?'m7b5':'m'), getTarget(tIndex, 7, '7sus4'), getTarget(tIndex, 7, '7'), getTarget(tIndex, 0, tMinor?'m':'maj') ];
+            explanation = "Esta ruta suaviza la transición hacia un destino vecino convirtiendo los acordes intermedios en puentes naturales. Al añadir tensión gradualmente mediante acordes que anuncian el nuevo destino, el oyente es empujado de forma ineludible. Es un viaje corto, que mantiene gran parte de la identidad original (compartiendo muchas notas), pero establece un centro de gravedad totalmente renovado y fresco.";
+          
+          } else if (formData.modulationDistance === 'homonimas') {
+            tMinor = !isMinor;
+            if (i === 0) { route = [ getChord(0, isMinor?'m':'maj'), getChord(isMinor?8:9, isMinor?'maj':'m'), getChord(5, isMinor?'m':'maj'), getTarget(tIndex, 5, tMinor?'m':'maj'), getTarget(tIndex, 7, '7alt'), getTarget(tIndex, 0, tMinor?'m':'maj') ]; }
+            else if (i === 1) { route = [ getChord(0, isMinor?'m':'maj'), getChord(2, isMinor?'m7b5':'m'), getChord(7, '7'), getTarget(tIndex, 8, 'maj'), getTarget(tIndex, 7, '7b9'), getTarget(tIndex, 0, tMinor?'m':'maj') ]; }
+            else { route = [ getChord(0, isMinor?'m':'maj'), getChord(isMinor?10:11, isMinor?'maj':'m7b5'), getChord(isMinor?5:4, isMinor?'m':'m'), getTarget(tIndex, 2, tMinor?'m7b5':'m'), getTarget(tIndex, 7, '7sus4'), getTarget(tIndex, 0, tMinor?'m':'maj') ]; }
+            explanation = "Un viaje psicológico profundo que ocurre sin movernos de nuestro ancla principal. La nota base no cambia, pero comenzamos a erosionar el entorno armónico intercambiando lentamente la luz por la oscuridad (o viceversa). La acumulación de tensión dramática en el penúltimo paso hace que la llegada a esta nueva realidad paralela se sienta como una revelación emocional y no como un error.";
+          
+          } else if (formData.modulationDistance === 'mediantes') {
+            if (i === 0) { tIndex = transposeIndex(rootIndex, isMinor ? 8 : 4); tMinor = false; }
+            if (i === 1) { tIndex = transposeIndex(rootIndex, isMinor ? 3 : 8); tMinor = false; }
+            if (i === 2) { tIndex = transposeIndex(rootIndex, isMinor ? 4 : 3); tMinor = true; }
+
+            route = [ getChord(0, isMinor?'m':'maj'), getChord(isMinor?3:4, isMinor?'maj':'m'), getChord(isMinor?10:11, isMinor?'maj':'m7b5'), getTarget(tIndex, 7, '7sus4'), getTarget(tIndex, 0, tMinor?'m':'maj') ];
+            explanation = "Ignoramos las transiciones comunes para dar un salto muy utilizado en el cine. Conectamos dos mundos alejados aprovechando pequeñas notas secretas que comparten, generando un efecto de ensoñación. El paisaje cambia drásticamente, como si de pronto se abriera una puerta a un escenario con un clima distinto, sin que el oído pueda anticipar cómo se ejecutó el truco.";
+          
           } else {
-            // Intercambio Modal (bVI - bVII - I)
-            route.push(formatChord(transposeIndex(rootIndex, 8), 'maj', formData.mood, formData.style));
-            route.push(formatChord(transposeIndex(rootIndex, 10), 'maj', formData.mood, formData.style));
-            route.push(formatChord(rootIndex, isMinor ? 'm' : 'maj', formData.mood, formData.style));
-            explanation = `[Préstamo Modal] EXPANSIÓN épica tomando acordes prestados del modo menor (bVI - bVII). Crea un arco narrativo heroico o misterioso antes de resolver nuevamente en la tónica.`;
+            if (i === 0) { tIndex = transposeIndex(rootIndex, 6); tMinor = !isMinor; } 
+            if (i === 1) { tIndex = transposeIndex(rootIndex, 2); tMinor = isMinor; } 
+            if (i === 2) { tIndex = transposeIndex(rootIndex, 1); tMinor = !isMinor; } 
+
+            route = [ getChord(0, isMinor?'m':'maj'), getChord(isMinor?8:4, isMinor?'maj':'m'), getTarget(tIndex, 2, tMinor?'m7b5':'m'), getTarget(tIndex, 7, '11'), getTarget(tIndex, 0, tMinor?'m':'maj') ];
+            explanation = "Una transición concebida para desorientar de forma elegante y abrupta. Saltamos hacia el abismo de un escenario que no tiene ninguna relación aparente con el inicio, pero evitamos el choque frontal utilizando un acorde suspendido. Esta estructura funciona como un paracaídas sonoro: oculta el destino final, crea un instante de gravedad cero y misterio, para luego depositarnos en un universo sonoro completamente ajeno.";
           }
         }
 
@@ -308,7 +284,7 @@ export default function App() {
               {isGenerating ? (
                 <div className="py-20 flex flex-col items-center justify-center space-y-4">
                   <RefreshCw className="w-10 h-10 text-indigo-500 animate-spin" />
-                  <p className="text-slate-500 text-sm font-medium animate-pulse">Analizando tensión y calculando espacios tonales...</p>
+                  <p className="text-slate-500 text-sm font-medium animate-pulse">Estructurando viajes armónicos y evaluando tensión...</p>
                 </div>
               ) : (
                 <div className="space-y-6 mt-4">
